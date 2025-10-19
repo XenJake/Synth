@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Synth - The Universal AI Creativity Studio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked@9.1.6/marked.min.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        quantum: {
+                            blue: '#00D4FF',
+                            purple: '#8B5CF6',
+                            dark: '#0A0A0F',
+                            darker: '#050508',
+                        }
+                    },
+                    animation: {
+                        'glow': 'glow 2s ease-in-out infinite alternate',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'wave': 'wave 1.5s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        glow: {
+                            '0%': { boxShadow: '0 0 5px #00D4FF, 0 0 10px #00D4FF' },
+                            '100%': { boxShadow: '0 0 10px #00D4FF, 0 0 20px #00D4FF, 0 0 30px #8B5CF6' }
+                        },
+                        wave: {
+                            '0%, 100%': { transform: 'scaleY(0.5)' },
+                            '50%': { transform: 'scaleY(1)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            overflow-x: hidden;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #0A0A0F 0%, #1a0b2e 50%, #0A0A0F 100%);
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #00D4FF 0%, #8B5CF6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .glass-dark {
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .neon-border {
+            border: 2px solid transparent;
+            background: linear-gradient(#0A0A0F, #0A0A0F) padding-box,
+                        linear-gradient(135deg, #00D4FF, #8B5CF6) border-box;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #00D4FF 0%, #8B5CF6 100%);
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 212, 255, 0.3);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .wave-animation {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            height: 30px;
+        }
+
+        .wave-bar {
+            width: 4px;
+            background: linear-gradient(to top, #00D4FF, #8B5CF6);
+            border-radius: 2px;
+            animation: wave 1.5s ease-in-out infinite;
+        }
+
+        .wave-bar:nth-child(2) { animation-delay: 0.1s; }
+        .wave-bar:nth-child(3) { animation-delay: 0.2s; }
+        .wave-bar:nth-child(4) { animation-delay: 0.3s; }
+        .wave-bar:nth-child(5) { animation-delay: 0.4s; }
+
+        .loading-spinner {
+            border: 3px solid rgba(0, 212, 255, 0.1);
+            border-top: 3px solid #00D4FF;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .tab-active {
+            background: linear-gradient(135deg, #00D4FF 0%, #8B5CF6 100%);
+            color: white;
+        }
+
+        .project-card {
+            transition: all 0.3s ease;
+        }
+
+        .project-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.2);
+        }
+
+        .module-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .module-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 15px 40px rgba(139, 92, 246, 0.3);
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #00D4FF;
+            box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.1);
+        }
+
+        .markdown-content {
+            line-height: 1.6;
+        }
+
+        .markdown-content h1, .markdown-content h2, .markdown-content h3 {
+            margin-top: 1em;
+            margin-bottom: 0.5em;
+            font-weight: 600;
+        }
+
+        .markdown-content p {
+            margin-bottom: 1em;
+        }
+
+        .markdown-content code {
+            background: rgba(0, 212, 255, 0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .markdown-content pre {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1em;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin-bottom: 1em;
+        }
+
+        .scroll-container {
+            overflow-y: auto;
+            max-height: calc(100vh - 200px);
+        }
+
+        .scroll-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .scroll-container::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+        }
+
+        .scroll-container::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #00D4FF, #8B5CF6);
+            border-radius: 4px;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(400px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .modal-overlay {
+            backdrop-filter: blur(5px);
+            background: rgba(0, 0, 0, 0.7);
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen text-white">
+
+    <!-- Main App Container -->
+    <div id="app" class="min-h-screen pb-20">
+
+        <!-- Header -->
+        <header class="glass-dark sticky top-0 z-50 border-b border-quantum-blue/20">
+            <div class="max-w-7xl mx-auto px-4 py-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-gradient-to-br from-quantum-blue to-quantum-purple rounded-lg flex items-center justify-center">
+                            <i class="fas fa-atom text-white text-xl"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-xl font-bold gradient-text">Synth</h1>
+                            <p class="text-xs text-gray-400">by Quantum Core</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <button id="creditsBtn" class="glass px-3 py-2 rounded-lg text-sm">
+                            <i class="fas fa-coins text-quantum-blue"></i>
+                            <span id="creditsCount" class="ml-2 font-semibold">∞</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main id="mainContent" class="max-w-7xl mx-auto px-4 py-6">
+            <!-- Content will be dynamically loaded here -->
+        </main>
+
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav class="fixed bottom-0 left-0 right-0 glass-dark border-t border-quantum-blue/20 z-50">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-around py-3">
+                <button class="nav-btn tab-active flex flex-col items-center gap-1 px-6 py-2 rounded-lg" data-tab="home">
+                    <i class="fas fa-home text-xl"></i>
+                    <span class="text-xs">Home</span>
+                </button>
+                <button class="nav-btn flex flex-col items-center gap-1 px-6 py-2 rounded-lg" data-tab="explore">
+                    <i class="fas fa-compass text-xl"></i>
+                    <span class="text-xs">Explore</span>
+                </button>
+                <button class="nav-btn flex flex-col items-center gap-1 px-6 py-2 rounded-lg" data-tab="projects">
+                    <i class="fas fa-folder text-xl"></i>
+                    <span class="text-xs">Projects</span>
+                </button>
+                <button class="nav-btn flex flex-col items-center gap-1 px-6 py-2 rounded-lg" data-tab="profile">
+                    <i class="fas fa-user text-xl"></i>
+                    <span class="text-xs">Profile</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <script>
+        // ==========================================
+        // CORE APP STATE & DATA MANAGEMENT
+        // ==========================================
+
+        class SynthApp {
+            constructor() {
+                this.currentTab = 'home';
+                this.projects = this.loadProjects();
+                this.userPreferences = this.loadPreferences();
+                this.generationHandlers = new Map();
+                this.init();
+            }
+
+            init() {
+                this.setupDarkMode();
+                this.setupNavigation();
+                this.setupPoeHandlers();
+                this.renderCurrentTab();
+            }
+
+            setupDarkMode() {
+                document.documentElement.classList.add('dark');
+            }
+
+            setupNavigation() {
+                document.querySelectorAll('.nav-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const tab = e.currentTarget.dataset.tab;
+                        this.switchTab(tab);
+                    });
+                });
+            }
+
+            switchTab(tab) {
+                this.currentTab = tab;
+
+                // Update nav buttons
+                document.querySelectorAll('.nav-btn').forEach(btn => {
+                    if (btn.dataset.tab === tab) {
+                        btn.classList.add('tab-active');
+                    } else {
+                        btn.classList.remove('tab-active');
+                    }
+                });
+
+                this.renderCurrentTab();
+            }
+
+            renderCurrentTab() {
+                const content = document.getElementById('mainContent');
+
+                switch(this.currentTab) {
+                    case 'home':
+                        this.renderHome(content);
+                        break;
+                    case 'explore':
+                        this.renderExplore(content);
+                        break;
+                    case 'projects':
+                        this.renderProjects(content);
+                        break;
+                    case 'profile':
+                        this.renderProfile(content);
+                        break;
+                }
+            }
+
+            // ==========================================
+            // HOME TAB
+            // ==========================================
+
+            renderHome(container) {
+                container.innerHTML = `
+                    <div class="fade-in">
+                        <!-- Hero Section -->
+                        <div class="text-center mb-8">
+                            <h2 class="text-4xl md:text-5xl font-bold gradient-text mb-3">Create Anything. Instantly.</h2>
+                            <p class="text-gray-400 text-lg">Turn your ideas into reality with AI-powered creativity</p>
+                        </div>
+
+                        <!-- Quick Create Input -->
+                        <div class="max-w-3xl mx-auto mb-12">
+                            <div class="glass-dark rounded-2xl p-6 neon-border">
+                                <div class="flex items-start gap-4">
+                                    <textarea
+                                        id="quickCreateInput"
+                                        placeholder="Describe what you want to create... (e.g., 'Create a futuristic logo' or 'Write a poem about space')"
+                                        class="flex-1 bg-transparent text-white placeholder-gray-500 resize-none text-base border-0 focus:outline-none min-h-[80px]"
+                                    ></textarea>
+                                </div>
+                                <div class="flex items-center justify-between mt-4 pt-4 border-t border-white/10">
+                                    <div class="flex gap-2">
+                                        <button id="voiceInputBtn" class="glass px-4 py-2 rounded-lg hover:bg-white/10 transition">
+                                            <i class="fas fa-microphone text-quantum-blue"></i>
+                                        </button>
+                                        <select id="quickCreateMode" class="glass px-4 py-2 rounded-lg bg-transparent text-white text-sm border-0">
+                                            <option value="auto">Auto-detect</option>
+                                            <option value="text">Text</option>
+                                            <option value="image">Image</option>
+                                            <option value="audio">Audio</option>
+                                            <option value="video">Video</option>
+                                        </select>
+                                    </div>
+                                    <button id="quickCreateBtn" class="btn-primary px-6 py-2 rounded-lg font-semibold">
+                                        <i class="fas fa-magic mr-2"></i>Create
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Creative Modules -->
+                        <div class="mb-8">
+                            <h3 class="text-2xl font-bold mb-6">Creative Modules</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                ${this.renderModuleCard('text', 'TextForge', 'pen-fancy', 'Generate articles, scripts, poems & more', '#00D4FF')}
+                                ${this.renderModuleCard('image', 'ImageCraft', 'image', 'Create logos, art & visual designs', '#8B5CF6')}
+                                ${this.renderModuleCard('audio', 'SoundFlow', 'music', 'Generate music, beats & soundscapes', '#F59E0B')}
+                                ${this.renderModuleCard('video', 'VisionFX', 'video', 'Create motion graphics & AI videos', '#EF4444')}
+                            </div>
+                        </div>
+
+                        <!-- Recent Projects -->
+                        <div>
+                            <div class="flex items-center justify-between mb-6">
+                                <h3 class="text-2xl font-bold">Recent Projects</h3>
+                                <button onclick="app.switchTab('projects')" class="text-quantum-blue hover:underline text-sm">
+                                    View All <i class="fas fa-arrow-right ml-1"></i>
+                                </button>
+                            </div>
+                            <div id="recentProjects" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                ${this.renderRecentProjects()}
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                this.setupHomeEventListeners();
+            }
+
+            renderModuleCard(type, name, icon, description, color) {
+                return `
+                    <div class="module-card glass-dark rounded-xl p-6 neon-border" data-module="${type}">
+                        <div class="w-12 h-12 rounded-lg mb-4 flex items-center justify-center" style="background: ${color}20; color: ${color};">
+                            <i class="fas fa-${icon} text-2xl"></i>
+                        </div>
+                        <h4 class="text-lg font-semibold mb-2">${name}</h4>
+                        <p class="text-sm text-gray-400">${description}</p>
+                    </div>
+                `;
+            }
+
+            renderRecentProjects() {
+                const recentProjects = this.projects.slice(-3).reverse();
+
+                if (recentProjects.length === 0) {
+                    return `
+                        <div class="col-span-full text-center py-12">
+                            <i class="fas fa-folder-open text-6xl text-gray-600 mb-4"></i>
+                            <p class="text-gray-400">No projects yet. Start creating!</p>
+                        </div>
+                    `;
+                }
+
+                return recentProjects.map(project => this.renderProjectCard(project)).join('');
+            }
+
+            setupHomeEventListeners() {
+                // Quick Create Button
+                document.getElementById('quickCreateBtn').addEventListener('click', () => {
+                    this.handleQuickCreate();
+                });
+
+                // Enter key in textarea
+                document.getElementById('quickCreateInput').addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                        this.handleQuickCreate();
+                    }
+                });
+
+                // Module Cards
+                document.querySelectorAll('.module-card').forEach(card => {
+                    card.addEventListener('click', (e) => {
+                        const moduleType = e.currentTarget.dataset.module;
+                        this.openCreationModal(moduleType);
+                    });
+                });
+
+                // Voice Input (placeholder for now)
+                document.getElementById('voiceInputBtn').addEventListener('click', () => {
+                    this.showNotification('Voice input coming soon!', 'info');
+                });
+            }
+
+            async handleQuickCreate() {
+                const input = document.getElementById('quickCreateInput');
+                const prompt = input.value.trim();
+                const mode = document.getElementById('quickCreateMode').value;
+
+                if (!prompt) {
+                    this.showNotification('Please enter a prompt', 'error');
+                    return;
+                }
+
+                // Detect type if auto
+                const detectedType = mode === 'auto' ? this.detectCreationType(prompt) : mode;
+
+                // Clear input
+                input.value = '';
+
+                // Create project and generate
+                await this.createAndGenerate(detectedType, prompt);
+            }
+
+            detectCreationType(prompt) {
+                const lower = prompt.toLowerCase();
+
+    
